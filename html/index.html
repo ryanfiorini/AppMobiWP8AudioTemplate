@@ -9,7 +9,7 @@
 
 <style type="text/css">
     /* Prevent copy paste for all elements except text fields and block touch actions */
-    *  { -webkit-user-select:none; -webkit-tap-highlight-color:rgba(255, 255, 255, 0); -ms-touch-action:none; }
+    *  { -webkit-user-select:none; -webkit-tap-highlight-color:rgba(255, 255, 255, 0); /*-ms-touch-action:none;*/ }
     input, textarea  { -webkit-user-select:text; }
     
     /* Set up the page with a default background image */
@@ -20,9 +20,6 @@
         font-size:24pt;
         margin:0px;padding:0px;
         background-image:url('images/background.jpg');
-    }
-    #content {
-        display: none;
     }
     button {
         height: 60px;
@@ -66,11 +63,10 @@ var onDeviceReady = function () {
     //AppMobi.device.setRotateOrientation(orientation);
     AppMobi.display.useViewport(portraitWidth, landscapeWidth);
 
+    getRecordings();
+
 	//hide appMobi's plash screen not yours
 	AppMobi.device.hideSplashScreen();	
-
-	document.getElementById('splashScreen').style.display = "none";
-	document.getElementById('content').style.display = "block";
 };
 document.addEventListener("appMobi.device.ready",onDeviceReady,false);    
 
@@ -93,34 +89,144 @@ function playRecording() {
     AppMobi.audio.startPlaying();
 }
 
+var currentSound = "";
+function playSound(sound) {
+    currentSound = sound;
+    AppMobi.audio.startPlaying(sound);
+}
+
+function stopPlayRecording() {
+    AppMobi.audio.stopPlaying();
+}
+
+function pausePlayRecording() {
+    AppMobi.audio.pausePlaying();
+}
+
+function continuePlayRecording() {
+    AppMobi.audio.continuePlaying();
+}
+
+function getRecordings() {
+    AppMobi.audio.getRecordings();
+}
+
+function deleteRecording() {
+    var soundList = AppMobi.audio.getRecordingList();
+    console.log("soundList.length", soundList.length);
+
+    if (soundList.length>0)
+        AppMobi.audio.deleteRecording(soundList[0]);
+}
 
 function onRecordStart(evt) {
-    alert('1');
-    document.getElementById("recordingStatus").innerHTML("Recording...");
-    alert('2');
+    if (evt.success)
+        document.getElementById("recordingStatus").innerText = "Recording...";
+    else
+        alert(evt.error);
 }
 document.addEventListener("appMobi.audio.record.start", onRecordStart, false);
 
 function onRecordStop(evt) {
-    alert('3');
-    document.getElementById("recordingStatus").innerHTML("Stopped Recording...");
-    alert('4');
+    document.getElementById("recordingStatus").innerText = "Stopped Recording...";
 }
 document.addEventListener("appMobi.audio.record.stop", onRecordStop, false);
+
+function onRecordPlay(evt) {
+    if (evt.success)
+        document.getElementById("recordingStatus").innerText = "Playing " + currentSound + " ...";
+    else
+        alert(evt.error);
+}
+document.addEventListener("appMobi.audio.play.start", onRecordPlay, false);
+
+function onPlaybackStop(evt) {
+    if (evt.success)
+        document.getElementById("recordingStatus").innerText = "Playback Stopped...";
+    else
+        alert(evt.error);
+}
+document.addEventListener("appMobi.audio.play.stop", onPlaybackStop, false);
+
+function onPausePlay(evt) {
+    if (evt.success)
+        document.getElementById("recordingStatus").innerText = "Pausing Play " + currentSound + " ...";
+    else
+        alert(evt.error);
+}
+document.addEventListener("appMobi.audio.play.pause", onPausePlay, false);
+
+function onContinuePlay(evt) {
+    if (evt.success)
+        document.getElementById("recordingStatus").innerText = "Continue Play " + currentSound + " ...";
+    else
+        alert(evt.error);
+}
+document.addEventListener("appMobi.audio.play.continue", onContinuePlay, false);
+
+function soundsReceived() {
+    var table = document.getElementById("sounds");
+    table.innerHTML = '';
+
+    var soundList = AppMobi.audio.getRecordingList();
+
+    console.log("soundList.length", soundList.length);
+
+    if (soundList.length == 0) {
+        var tr = document.createElement("tr");
+        tr.setAttribute('style', 'background-color:#B8BFD8');
+        var temp = document.createElement("td");
+        temp.innerHTML = "No recordings Found!";
+        tr.appendChild(temp);
+        table.appendChild(tr);
+    } else {
+        for (var i = 0; i < soundList.length; i++) {
+            //add row to table
+            var sound = soundList[i];
+            var tr = document.createElement("tr");
+            tr.setAttribute('onClick', 'playSound("' + sound + '");');
+            tr.setAttribute('style', 'background-color:#B8BFD8');
+
+            var id = document.createElement("td");
+            id.innerHTML = sound;
+            tr.appendChild(id);
+
+            table.appendChild(tr);
+        }
+    }
+}
+document.addEventListener('appMobi.audio.get', soundsReceived, false);
+
+function onDelete(evt) {
+    if (evt.success) {
+        document.getElementById("recordingStatus").innerText = "Delete Successful.";
+    }
+    else
+        alert(evt.error);
+}
+document.addEventListener("appMobi.audio.record.removed", onDelete, false);
 
 </script>
 
 </head>
 <body>
-    <div id="splashScreen">
-        LOADING...
-    </div>
     <div id="content">
-        <div>STATUS:<span id="recordingStatus"></span></div>
-        <!-- Your app content goes here -->
-        <button id="startRecording" onclick="startRecording();">Start Recording</button><br /><br />
-        <button id="stopRecording" onclick="stopRecording();">sTop Recording</button><br /><br />
-        <button id="playRecording" onclick="playRecording();">Play Recording</button><br /><br />
+        <div>STATUS: <span id="recordingStatus"></span></div><br /><br />
+
+        <button onclick="getRecordings();">Get Recordings</button><br /><br />
+
+        <button onclick="startRecording();">Start Recording</button>
+        <button onclick="stopRecording();">Stop Recording</button><br />
+
+        <button onclick="deleteRecording();">Delete Recording</button><br />
+
+        <button onclick="pausePlayRecording();">Pause Playback</button>
+        <button onclick="continuePlayRecording();">Continue Playback</button><br />
+
+        <button onclick="stopPlayRecording();">Stop Playback</button><br />
     </div>
+    <br /><br />
+    Tap to play<br />
+    <table id="sounds"></table>
 </body>
 </html>

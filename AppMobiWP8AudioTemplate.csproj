@@ -136,6 +136,8 @@
     <Content Include="Assets\appmobi.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\splash_landscape.png" />
+    <Content Include="Assets\splash_portrait.png" />
     <Content Include="Assets\Tiles\FlipCycleTileLarge.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -157,6 +159,7 @@
     <Content Include="html\_appMobi\appmobi_local_bootstrap.js" />
     <Content Include="html\_appMobi\window.js" />
     <Content Include="html\_appMobi\xhr.js" />
+    <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\AppResources.resx">
